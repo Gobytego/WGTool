@@ -1,0 +1,28 @@
+#!/bin/bash
+current=$(systemctl --value show --property Names wg-quick@* | sed 's/wg-quick@//g' | sed 's/\.service//g')
+mapfile -t avail <<<"$(find /etc/wireguard/ -iname '*.conf' -execdir basename {} \; | sed 's/\.conf//g')"
+
+echo "Current : ${current}"
+PS3='Please enter your choice: '
+options=("Status" "WGConnect" "Dissconnect" "Quit")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "Status")
+            echo "Showing Status"
+            exec sudo wg show
+            ;;
+        "WGConnect")
+            echo "Launch WGConnect"
+            exec wgconnect
+            ;;             
+        "Dissconnect")
+            echo "Dissconnecting from ${current}"
+            exec sudo wg-quick down ${current}
+            ;;     
+        "Quit")
+            break
+            ;;
+        *) echo "invalid option $REPLY";;
+    esac
+done
