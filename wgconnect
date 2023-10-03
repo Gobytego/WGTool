@@ -1,0 +1,22 @@
+#!/bin/bash
+
+current=$(systemctl --value show --property Names wg-quick@* | sed 's/wg-quick@//g' | sed 's/\.service//g')
+mapfile -t avail <<<"$(find /etc/wireguard/ -iname '*.conf' -execdir basename {} \; | sed 's/\.conf//g')"
+
+echo "Current : ${current}"
+select next in "${avail[@]}"
+do
+    if [[ "${current}" == "${next}" ]]
+    then
+        echo "Doing nothing"
+    else
+        if [[ -n "${current}" ]]
+        then
+            echo "Stopping ${current}"
+            sudo systemctl stop wg-quick@"${current}"
+        fi
+        echo "Starting ${next}"
+        sudo systemctl start wg-quick@"${next}"
+    fi
+    exit 0
+done
